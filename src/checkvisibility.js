@@ -13,6 +13,7 @@ APP.checkVisibility = (function(window){
 		var docBody = document.body;
 
 		var winHeight;
+		var winWidth;
 		var rect;
 		var elemHeight;
 		var elemWidth;
@@ -21,16 +22,19 @@ APP.checkVisibility = (function(window){
 		var deltas = {};
 		var scrollY;
 		var scrollX;
+		var rectTop;
 		var offsetTop;
+		var elemOffsetTop
+		var docClientTop
 
 		self.elem = elem;
-		//self.x = x || 0;
+
 		self.y = y || 0;
 
 		function _getAttr(elem){
 
-			elemHeight =  self.elem.offsetHeight;
-			elemWidth =  self.elem.offsetWidth;
+			elemHeight = self.elem.offsetHeight;
+			elemWidth = self.elem.offsetWidth;
 			elemOffsetTop = self.elem.offsetTop
 
 			docHeight = Math.max(docBody.offsetHeight, doc.scrollHeight);
@@ -41,18 +45,13 @@ APP.checkVisibility = (function(window){
 
 		this.is = function(){
 
-
 			scrollY = win.scrollY;
 			scrollX = win.scrollX;
 			// getBoundingClientRect CAUSES MAJOR REPAINT == fallback needed
-			//rect = self.elem.getBoundingClientRect();
-
-			//  Here it is, i calculate the same vaue with already retrieve val
-			rectTop = elemOffsetTop - scrollY
-
+			rect = self.elem.getBoundingClientRect();
 
 			bounds = {
-				top :  rectTop + scrollY - docClientTop
+				top :  rect.top + scrollY - docClientTop
 				//left :  rect.left + scrollX - doc.clientLeft
 			}
 
@@ -66,21 +65,19 @@ APP.checkVisibility = (function(window){
 
 			//viewport.right = viewport.left + winWidth;
 			viewport.bottom = viewport.top + winHeight;
+			console.log(bounds.bottom, viewport.top, elemHeight)
 
 			deltas = {
 				top : Math.min( 1, (  bounds.bottom - viewport.top ) / elemHeight),
 				bottom : Math.min(1, ( viewport.bottom -  bounds.top ) / elemHeight),
-				//left : Math.min(1, (  bounds.right - viewport.left ) / elemWidth),
-				//right : Math.min(1, ( viewport.right -  bounds.left ) / elemWidth)
 			};
 
 		}
 
 		this.inView = function(){
-
 			self.is(self.elem, self.y)
-			//return (deltas.left * deltas.right) > self.x && (deltas.top * deltas.bottom) > self.y
-			return (deltas.top * deltas.bottom) > self.y
+			
+			return deltas.top * deltas.bottom > self.y
 		}
 
 		this.fromBottom = function(){
@@ -108,7 +105,6 @@ APP.checkVisibility = (function(window){
 			return (viewport.top + winHeight) >= (docHeight)
 		}
 
-
 		function _init(){
 			_getAttr()
 		}
@@ -119,75 +115,3 @@ APP.checkVisibility = (function(window){
 	return checkVisibility
 
 })(window)
-
-/* INIT with request animation frame */
-
-var reqAnimFr = window.requestAnimationFrame ||
-window.webkitRequestAnimationFrame ||
-window.mozRequestAnimationFrame ||
-window.msRequestAnimationFrame ||
-window.oRequestAnimationFrame;
-
-
-window.addEventListener('load', function(){
-
-	var elems = document.querySelectorAll('.js-check-visibility');
-
-	[].forEach.call(elems, function(elem) {
-		// attach instance au node
-	 	elem.checkVisibility = new APP.checkVisibility(elem,0,0)
-	});
-
-	if(reqAnimFr){
-		loop()
-	}
-
-	var lastScrollTop = window.scrollY;
-
-	function loop() { // 48fps
-
-		var scrollTop = window.scrollY;
-
-		if (lastScrollTop === scrollTop) {
-
-			reqAnimFr(loop);
-
-			return;
-
-		} else {
-			console.log("ELSE=", scrollTop)
-			lastScrollTop = scrollTop;
-
-
-			[].forEach.call(elems, function(elem) {
-
-				var hasInviewClass = elem.classList.contains('in-view')
-				var elemInview = elem.checkVisibility.inView()
-
-				if(elemInview && !hasInviewClass){
-					elem.classList.add( 'in-view' );
-				}
-
-				if(!elemInview && hasInviewClass){
-					elem.classList.remove( 'in-view' );
-				}
-			});
-
-			reqAnimFr(loop);
-		}
-	}
-})
-
-
-
-
-
-// hasClass = function( elem, c ) {
-//     return elem.classList.contains( c );
-//   };
-//   addClass = function( elem, c ) {
-//     elem.classList.add( c );
-//   };
-//   removeClass = function( elem, c ) {
-//     elem.classList.remove( c );
-//   };
