@@ -25,38 +25,31 @@ APP.checkVisibility = (function(window){
 		var rectTop;
 		var offsetTop;
 		var elemOffsetTop
-		var docClientTop
+		//var docClientTop
 
 		self.elem = elem;
-
 		self.y = y || 0;
 
-		function _getAttr(elem){
+		this.initSizes= function(){
 
-			elemHeight = self.elem.offsetHeight;
+			elemHeight = self.elem.offsetHeight + parseFloat(window.getComputedStyle(self.elem)["margin-top"]) + parseFloat(window.getComputedStyle(self.elem)["margin-bottom"]);
 			elemWidth = self.elem.offsetWidth;
 			elemOffsetTop = self.elem.offsetTop
 
 			docHeight = Math.max(docBody.offsetHeight, doc.scrollHeight);
 			winHeight = Math.max(win.innerHeight, doc.clientHeight)
 			winWidth = Math.max(win.innerWidth, doc.clientWidth)
-			docClientTop = doc.clientTop;
+			//docClientTop = doc.clientTop;
 		}
 
 		this.is = function(){
 
 			scrollY = win.scrollY;
 			scrollX = win.scrollX;
+
 			// getBoundingClientRect CAUSES MAJOR REPAINT == fallback needed
+
 			rect = self.elem.getBoundingClientRect();
-
-			bounds = {
-				top :  rect.top + scrollY - docClientTop
-				//left :  rect.left + scrollX - doc.clientLeft
-			}
-
-			//bounds.right = bounds.left + elemWidth;
-			bounds.bottom = bounds.top + elemHeight;
 
 			var viewport = {
 				top : scrollY,
@@ -65,19 +58,24 @@ APP.checkVisibility = (function(window){
 
 			//viewport.right = viewport.left + winWidth;
 			viewport.bottom = viewport.top + winHeight;
-			console.log(bounds.bottom, viewport.top, elemHeight)
+
+			bounds = {
+				top :  rect.top + scrollY
+				//left :  rect.left + scrollX
+			}
+
+			//bounds.right = bounds.left + elemWidth;
+			bounds.bottom = bounds.top + elemHeight;
 
 			deltas = {
 				top : Math.min( 1, (  bounds.bottom - viewport.top ) / elemHeight),
 				bottom : Math.min(1, ( viewport.bottom -  bounds.top ) / elemHeight),
 			};
-
 		}
 
 		this.inView = function(){
 			self.is(self.elem, self.y)
-			
-			return deltas.top * deltas.bottom > self.y
+			return deltas.top * deltas.bottom >= self.y
 		}
 
 		this.fromBottom = function(){
@@ -105,9 +103,7 @@ APP.checkVisibility = (function(window){
 			return (viewport.top + winHeight) >= (docHeight)
 		}
 
-		function _init(){
-			_getAttr()
-		}
+		function _init(){self.initSizes()}
 
 		_init()
 	}
@@ -115,3 +111,67 @@ APP.checkVisibility = (function(window){
 	return checkVisibility
 
 })(window)
+
+/* INIT with request animation frame */
+
+var reqAnimFr = window.requestAnimationFrame ||
+	window.webkitRequestAnimationFrame ||
+	window.mozRequestAnimationFrame ||
+	window.msRequestAnimationFrame ||
+	window.oRequestAnimationFrame;
+
+	var elems = document.querySelectorAll('.js-check-visibility ');
+
+	[].forEach.call(elems, function(elem) {
+
+		// attach instance au node
+		elem.checkVisibility = new APP.checkVisibility(elem,0.8)
+
+
+		window.addEventListener('resize', function(){
+			// Improve this
+			// recalculate height and position
+			elem.checkVisibility.initSizes()
+		})
+	});
+
+	if(reqAnimFr){
+		loop()
+	}
+
+	var lastScrollTop = window.scrollY;
+
+	function loop() {
+
+		var scrollTop = window.scrollY;
+
+		if (lastScrollTop === scrollTop) {
+
+			reqAnimFr(loop);
+
+			return;
+
+		} else {
+
+			lastScrollTop = scrollTop;
+
+			[].forEach.call(elems, function(elem) {
+
+				if(elem.checkVisibility.inView()){
+					if(!elem.classList.contains('in-view')){
+						elem.classList.add('in-view')
+					}
+
+				}else{
+					if(elem.classList.contains('in-view')){
+						elem.classList.remove('in-view')
+					}
+
+				}
+			});
+
+			reqAnimFr(loop);
+		}
+	}
+
+
