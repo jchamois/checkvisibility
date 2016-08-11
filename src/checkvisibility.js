@@ -1,8 +1,8 @@
-var APP = APP || {}
+var APP = APP || {};
 
 APP.checkVisibility = (function(window){
 
-	function checkVisibility(elem,y){
+	function checkVisibility(elem){
 
 		var self = this;
 		var deltas = {};
@@ -24,36 +24,36 @@ APP.checkVisibility = (function(window){
 		var scrollX;
 		var rectTop;
 		var offsetTop;
-		var elemOffsetTop
+		var elemOffsetTop;
+		var viewport;
+		var trackLength;
+
 		//var docClientTop
 
 		self.elem = elem;
-		self.y = y || 0;
 
-		this.initSizes= function(){
+		this.calcSize = function(){
 
-			elemHeight = self.elem.offsetHeight + parseFloat(window.getComputedStyle(self.elem)["margin-top"]) + parseFloat(window.getComputedStyle(self.elem)["margin-bottom"]);
+			elemHeight = self.elem.offsetHeight 
 			elemWidth = self.elem.offsetWidth;
 			elemOffsetTop = self.elem.offsetTop
 
 			docHeight = Math.max(docBody.offsetHeight, doc.scrollHeight);
-			winHeight = Math.max(win.innerHeight, doc.clientHeight)
-			winWidth = Math.max(win.innerWidth, doc.clientWidth)
+			winHeight = Math.max(win.innerHeight, doc.clientHeight);
+			winWidth = Math.max(win.innerWidth, doc.clientWidth);
 			//docClientTop = doc.clientTop;
 		}
 
-		this.is = function(){
-
-			scrollY = win.scrollY;
-			scrollX = win.scrollX;
+		this.is = function(elem, y){
+			
+			scrollY = win.pageYOffset; // IE 10 + purpose
+			//scrollX = win.pageXOffset;
 
 			// getBoundingClientRect CAUSES MAJOR REPAINT == fallback needed
 
 			rect = self.elem.getBoundingClientRect();
-
-			var viewport = {
-				top : scrollY,
-				//left : scrollX
+			 viewport = {
+				top : scrollY
 			};
 
 			//viewport.right = viewport.left + winWidth;
@@ -66,44 +66,71 @@ APP.checkVisibility = (function(window){
 
 			//bounds.right = bounds.left + elemWidth;
 			bounds.bottom = bounds.top + elemHeight;
-
-			deltas = {
-				top : Math.min( 1, (  bounds.bottom - viewport.top ) / elemHeight),
-				bottom : Math.min(1, ( viewport.bottom -  bounds.top ) / elemHeight),
-			};
+	
+			if(y){
+				console.log('y est true')
+				deltas = {
+					top : Math.min( 1, ( bounds.bottom - viewport.top ) / elemHeight),
+					bottom : Math.min(1, ( viewport.bottom -  bounds.top ) / elemHeight)
+				};
+			}
 		}
 
-		this.inView = function(){
-			self.is(self.elem, self.y)
-			return deltas.top * deltas.bottom >= self.y
+		this.percentageScrolled = function(){
+
+			trackLength = docHeight - winHeight;
+			
+			var pctScrolled = Math.floor(win.scrollY/trackLength * 100);
+
+			return pctScrolled;
+		}
+
+		this.inView = function(y){
+			
+			var y = y || 1;
+
+			self.is(self.elem, y)
+
+			// est ce self.y partie de l elem est visible
+			return (deltas.top * deltas.bottom) >= y
 		}
 
 		this.fromBottom = function(){
-			self.is(self.elem, self.y)
+			self.is(self.elem)
+
+			// distance du bottom window
 			return viewport.bottom - bounds.bottom
 		}
 
 		this.fromTop = function(){
-			self.is(self.elem, self.y)
+			self.is(self.elem)
+			// distance du top window
 			return viewport.top - bounds.top
 		}
 
 		this.viewportTop = function(){
-			self.is(self.elem, self.y)
+			// scrollY
+			self.is(self.elem)
+
 			return viewport.top
 		}
 
 		this.viewportBottom = function(){
-			self.is(self.elem, self.y)
+			// from bottom scroll
+			self.is(self.elem)
 			return viewport.bottom
 		}
 
 		this.bottomOfWindow = function(){
-			self.is(self.elem, self.y)
+			self.is(self.elem)
+
+			// return si on a scroll toute la window
 			return (viewport.top + winHeight) >= (docHeight)
 		}
 
-		function _init(){self.initSizes()}
+		function _init(){
+			self.calcSize();
+		}
 
 		_init()
 	}
@@ -111,67 +138,3 @@ APP.checkVisibility = (function(window){
 	return checkVisibility
 
 })(window)
-
-/* INIT with request animation frame */
-
-var reqAnimFr = window.requestAnimationFrame ||
-	window.webkitRequestAnimationFrame ||
-	window.mozRequestAnimationFrame ||
-	window.msRequestAnimationFrame ||
-	window.oRequestAnimationFrame;
-
-	var elems = document.querySelectorAll('.js-check-visibility ');
-
-	[].forEach.call(elems, function(elem) {
-
-		// attach instance au node
-		elem.checkVisibility = new APP.checkVisibility(elem,0.8)
-
-
-		window.addEventListener('resize', function(){
-			// Improve this
-			// recalculate height and position
-			elem.checkVisibility.initSizes()
-		})
-	});
-
-	if(reqAnimFr){
-		loop()
-	}
-
-	var lastScrollTop = window.scrollY;
-
-	function loop() {
-
-		var scrollTop = window.scrollY;
-
-		if (lastScrollTop === scrollTop) {
-
-			reqAnimFr(loop);
-
-			return;
-
-		} else {
-
-			lastScrollTop = scrollTop;
-
-			[].forEach.call(elems, function(elem) {
-
-				if(elem.checkVisibility.inView()){
-					if(!elem.classList.contains('in-view')){
-						elem.classList.add('in-view')
-					}
-
-				}else{
-					if(elem.classList.contains('in-view')){
-						elem.classList.remove('in-view')
-					}
-
-				}
-			});
-
-			reqAnimFr(loop);
-		}
-	}
-
-
