@@ -67,8 +67,8 @@ APP.checkVisibility = (function(window){
 			//bounds.right = bounds.left + elemWidth;
 			bounds.bottom = bounds.top + elemHeight;
 	
-			if(y){
-				console.log('y est true')
+			if(y !== undefined){
+				
 				deltas = {
 					top : Math.min( 1, ( bounds.bottom - viewport.top ) / elemHeight),
 					bottom : Math.min(1, ( viewport.bottom -  bounds.top ) / elemHeight)
@@ -87,8 +87,8 @@ APP.checkVisibility = (function(window){
 
 		this.inView = function(y){
 			
-			var y = y || 1;
-
+			var y = (y == undefined || y == 0) ? 1 : y;
+		
 			self.is(self.elem, y)
 
 			// est ce self.y partie de l elem est visible
