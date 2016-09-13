@@ -87,7 +87,7 @@ APP.checkVisibility = (function(window){
 
 		this.inView = function(y){
 			
-			var y = (y == undefined || y == 0) ? 1 : y;
+			var y = (y == undefined || y == 0) ? 0 : y;
 		
 			self.is(self.elem, y)
 
