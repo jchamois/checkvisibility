@@ -9,7 +9,7 @@ Such as :
 
 **Here are the methods available in the object: **
 
- - checkVisibility.inView(y) : y is a value between 0 and 1. the method return true if at least yx100 (refers to y
+ - checkVisibility.inView(y) : y is a value between 0 and 1. the method return true if at least "y x 100" (refers to y
    value) of the element is visible in the viewport.
  - checkVisibility.fromBottom : return the distance of element from the
    bottom of the viewport. 
