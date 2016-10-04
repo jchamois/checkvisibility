@@ -1,6 +1,5 @@
-var APP = APP || {};
 
-APP.checkVisibility = (function(window){
+window.checkVisibility = (function(window){
 
 	function checkVisibility(elem){
 
@@ -32,7 +31,7 @@ APP.checkVisibility = (function(window){
 
 		self.elem = elem;
 
-		this.calcSize = function(){
+		this.updatePosition = function(){
 
 			elemHeight = self.elem.offsetHeight 
 			elemWidth = self.elem.offsetWidth;
@@ -40,19 +39,18 @@ APP.checkVisibility = (function(window){
 
 			docHeight = Math.max(docBody.offsetHeight, doc.scrollHeight);
 			winHeight = Math.max(win.innerHeight, doc.clientHeight);
-			winWidth = Math.max(win.innerWidth, doc.clientWidth);
-			//docClientTop = doc.clientTop;
+			winWidth = Math.max(win.innerWidth, doc.clientWidth);	
 		}
 
-		this.is = function(elem, y){
-			
+		function is(elem, y){
+
 			scrollY = win.pageYOffset; // IE 10 + purpose
 			//scrollX = win.pageXOffset;
 
-			// getBoundingClientRect CAUSES MAJOR REPAINT == fallback needed
+			// getBoundingClientRect CAUSES MAJOR REPAINT == fallback needed but no solution yet
 
 			rect = self.elem.getBoundingClientRect();
-			 viewport = {
+			viewport = {
 				top : scrollY
 			};
 
@@ -66,9 +64,8 @@ APP.checkVisibility = (function(window){
 
 			//bounds.right = bounds.left + elemWidth;
 			bounds.bottom = bounds.top + elemHeight;
-	
+
 			if(y !== undefined){
-				
 				deltas = {
 					top : Math.min( 1, ( bounds.bottom - viewport.top ) / elemHeight),
 					bottom : Math.min(1, ( viewport.bottom -  bounds.top ) / elemHeight)
@@ -80,7 +77,7 @@ APP.checkVisibility = (function(window){
 
 			trackLength = docHeight - winHeight;
 			
-			var pctScrolled = Math.floor(win.scrollY/trackLength * 100);
+			var pctScrolled = Math.floor(win.scrollY / trackLength * 100);
 
 			return pctScrolled;
 		}
@@ -88,53 +85,49 @@ APP.checkVisibility = (function(window){
 		this.inView = function(y){
 			
 			var y = (y == undefined || y == 0) ? 0 : y;
-		
-			self.is(self.elem, y)
 
-			// est ce self.y partie de l elem est visible
-			return (deltas.top * deltas.bottom) >= y
+			is(self.elem, y);
+
+			return (deltas.top * deltas.bottom) >= y; // true si elem est visible a y x 100 %
 		}
 
 		this.fromBottom = function(){
-			self.is(self.elem)
-
-			// distance du bottom window
-			return viewport.bottom - bounds.bottom
+			is(self.elem);
+			
+			return viewport.bottom - bounds.bottom; // distance du bottom window
 		}
 
 		this.fromTop = function(){
-			self.is(self.elem)
-			// distance du top window
-			return viewport.top - bounds.top
+			is(self.elem);
+
+			return viewport.top - bounds.top; // distance du top window
 		}
 
 		this.viewportTop = function(){
-			// scrollY
-			self.is(self.elem)
+			is(self.elem);
 
-			return viewport.top
+			return viewport.top; // Same as scrollY
 		}
 
 		this.viewportBottom = function(){
-			// from bottom scroll
-			self.is(self.elem)
-			return viewport.bottom
+			is(self.elem);
+
+			return viewport.bottom; // distance from bottom scroll
 		}
 
 		this.bottomOfWindow = function(){
-			self.is(self.elem)
 
-			// return si on a scroll toute la window
-			return (viewport.top + winHeight) >= (docHeight)
+			is(self.elem);
+			return (viewport.top + winHeight) >= (docHeight); // return si on a scroll toute la window
 		}
 
 		function _init(){
-			self.calcSize();
+			self.updatePosition();
 		}
 
 		_init()
 	}
 
-	return checkVisibility
+	return checkVisibility;
 
 })(window)
