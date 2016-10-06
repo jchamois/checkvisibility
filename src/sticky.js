@@ -128,7 +128,7 @@ window.sticky = (function () {
 
 			if(self.stickyLimit.offsetHeight > self.el.offsetHeight){
 
-				self.parent.checkVisibility = new checkVisibility(self.parent);
+				self.parent.checkVisibility = new window.CheckVisibility(self.parent);
 
 				// init handler on ready
 
