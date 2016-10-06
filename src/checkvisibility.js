@@ -4,8 +4,6 @@ window.checkVisibility = (function(window){
 	function checkVisibility(elem){
 
 		var self = this;
-		var deltas = {};
-		var bounds = {};
 
 		var win = window;
 		var doc = document.documentElement;
@@ -33,14 +31,14 @@ window.checkVisibility = (function(window){
 
 		this.updatePosition = function(){
 
-			elemHeight = self.elem.offsetHeight 
+			elemHeight = self.elem.offsetHeight;
 			elemWidth = self.elem.offsetWidth;
-			elemOffsetTop = self.elem.offsetTop
+			elemOffsetTop = self.elem.offsetTop;
 
 			docHeight = Math.max(docBody.offsetHeight, doc.scrollHeight);
 			winHeight = Math.max(win.innerHeight, doc.clientHeight);
-			winWidth = Math.max(win.innerWidth, doc.clientWidth);	
-		}
+			winWidth = Math.max(win.innerWidth, doc.clientWidth);
+		};
 
 		function is(elem, y){
 
@@ -60,7 +58,7 @@ window.checkVisibility = (function(window){
 			bounds = {
 				top :  rect.top + scrollY
 				//left :  rect.left + scrollX
-			}
+			};
 
 			//bounds.right = bounds.left + elemWidth;
 			bounds.bottom = bounds.top + elemHeight;
@@ -76,58 +74,58 @@ window.checkVisibility = (function(window){
 		this.percentageScrolled = function(){
 
 			trackLength = docHeight - winHeight;
-			
+
 			var pctScrolled = Math.floor(win.scrollY / trackLength * 100);
 
 			return pctScrolled;
-		}
+		};
 
 		this.inView = function(y){
-			
+
 			var y = (y == undefined || y == 0) ? 0 : y;
 
 			is(self.elem, y);
 
 			return (deltas.top * deltas.bottom) >= y; // true si elem est visible a y x 100 %
-		}
+		};
 
 		this.fromBottom = function(){
 			is(self.elem);
-			
+
 			return viewport.bottom - bounds.bottom; // distance du bottom window
-		}
+		};
 
 		this.fromTop = function(){
 			is(self.elem);
 
 			return viewport.top - bounds.top; // distance du top window
-		}
+		};
 
 		this.viewportTop = function(){
 			is(self.elem);
 
 			return viewport.top; // Same as scrollY
-		}
+		};
 
 		this.viewportBottom = function(){
 			is(self.elem);
 
 			return viewport.bottom; // distance from bottom scroll
-		}
+		};
 
 		this.bottomOfWindow = function(){
 
 			is(self.elem);
 			return (viewport.top + winHeight) >= (docHeight); // return si on a scroll toute la window
-		}
+		};
 
 		function _init(){
 			self.updatePosition();
 		}
 
-		_init()
+		_init();
 	}
 
 	return checkVisibility;
 
-})(window)
+})(window);
