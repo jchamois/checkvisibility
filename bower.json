@@ -1,0 +1,17 @@
+{
+  "name": "checkvisibility",
+  "description": "Basically **checkVisibility** allows to detect positioning of an element in the viewport. It takes one param : the DOM elem, you want to track",
+  "main": "src/checkvisibility.js",
+  "authors": [
+    "Jeremy Chamois <jeremy.chamois@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/jchamois/checkvisibility",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
